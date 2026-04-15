@@ -1,0 +1,51 @@
+app:
+  name: golden_customer_record
+  runtime: google_colab
+  architecture: medallion
+
+input:
+  crm_path: /content/crm_customers.csv
+  transaction_path: /content/transaction_customers.csv
+  about_data_path: /content/ABOUT_DATA.md
+
+output:
+  gold_dataset_dir: /content/gold_golden_customers
+  metrics_dir: /content/gold_metrics
+
+matching:
+  primary_match_key: email_normalized
+  fallback_match_key:
+    - first_name
+    - last_name
+    - city
+    - country
+  allow_fallback_only_when_email_missing: true
+  require_unique_fallback_match: true
+
+deduplication:
+  crm_recency_columns:
+    - registration_date_clean
+    - last_updated_clean
+  transaction_recency_columns:
+    - purchase_date_clean
+
+validation:
+  require_gold_output: true
+  require_metrics_output: true
+  require_non_empty_gold: true
+  require_unique_golden_customer_id: true
+  expected_match_rules:
+    - email_exact
+    - fallback_name_city_country
+    - crm_only
+    - txn_only
+  required_metrics:
+    - bronze_crm_rows
+    - bronze_txn_rows
+    - silver_crm_rows
+    - silver_txn_rows
+    - gold_email_matches
+    - gold_fallback_matches
+    - gold_crm_only
+    - gold_txn_only
+    - gold_total_records
